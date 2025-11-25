@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Activity Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .activity-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #2575fc;
+            text-align: center;
+        }
+        
+        .activity-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .detail {
+            flex: 1;
+            min-width: 120px;
+            background: #f5f9ff;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2575fc;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus {
+            border-color: #2575fc;
+            outline: none;
+        }
+        
+        button {
+            background: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #1a68e8;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #a0c0ff;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            color: #2575fc;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(37, 117, 252, 0.2);
+            border-radius: 50%;
+            border-top: 4px solid #2575fc;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            display: none;
+            background: #ffe6e6;
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .activity-title {
+                font-size: 1.5rem;
+            }
+            
+            .activity-details {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Random Activity Explorer</h1>
+            <p class="subtitle">Find something fun to do when you're bored!</p>
+        </header>
+        
+        <div class="error" id="error-message">
+            Oops, something went wrong — please try again.
+        </div>
+        
+        <div class="card">
+            <h2 class="activity-title" id="activity-title">Loading your activity...</h2>
+            
+            <div class="activity-details">
+                <div class="detail">
+                    <div class="detail-label">Type</div>
+                    <div class="detail-value" id="activity-type">-</div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">Participants</div>
+                    <div class="detail-value" id="activity-participants">-</div>
+                </div>
+                <div class="detail">
+                    <div class="detail-label">Accessibility</div>
+                    <div class="detail-value" id="activity-accessibility">-</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <select id="type-filter">
+                    <option value="">Any Type</option>
+                    <option value="education">Education</option>
+                    <option value="recreational">Recreational</option>
+                    <option value="social">Social</option>
+                    <option value="diy">DIY</option>
+                    <option value="charity">Charity</option>
+                    <option value="cooking">Cooking</option>
+                    <option value="relaxation">Relaxation</option>
+                    <option value="music">Music</option>
+                    <option value="busywork">Busywork</option>
+                </select>
+                
+                <button id="get-activity">
+                    <span>Get Another Activity</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Finding a great activity for you...</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Powered by the Bored API • Made with vanilla JavaScript</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activityTitle = document.getElementById('activity-title');
+            const activityType = document.getElementById('activity-type');
+            const activityParticipants = document.getElementById('activity-participants');
+            const activityAccessibility = document.getElementById('activity-accessibility');
+            const getActivityBtn = document.getElementById('get-activity');
+            const typeFilter = document.getElementById('type-filter');
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error-message');
+            
+            // Fetch a random activity on page load
+            fetchRandomActivity();
+            
+            // Add event listener to the button
+            getActivityBtn.addEventListener('click', fetchRandomActivity);
+            
+            // Function to fetch a random activity
+            function fetchRandomActivity() {
+                // Show loading state
+                loadingElement.style.display = 'block';
+                errorElement.style.display = 'none';
+                getActivityBtn.disabled = true;
+                
+                // Build the API URL
+                let apiUrl = 'https://www.boredapi.com/api/activity';
+                const selectedType = typeFilter.value;
+                
+                if (selectedType) {
+                    apiUrl += ?type=${selectedType};
+                }
+                
+                // Fetch from the API
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Check if we got an activity
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        // Update the UI with the activity data
+                        updateActivityCard(data);
+                        
+                        // Hide loading state
+                        loadingElement.style.display = 'none';
+                        getActivityBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching activity:', error);
+                        
+                        // Show error message
+                        loadingElement.style.display = 'none';
+                        errorElement.style.display = 'block';
+                        getActivityBtn.disabled = false;
+                    });
+            }
+            
+            // Function to update the activity card with data
+            function updateActivityCard(activity) {
+                activityTitle.textContent = activity.activity;
+                activityType.textContent = formatType(activity.type);
+                activityParticipants.textContent = activity.participants;
+                
+                // Format accessibility as percentage
+                const accessibilityValue = Math.round((1 - activity.accessibility) * 100);
+                activityAccessibility.textContent = ${accessibilityValue}%;
+                
+                // Color code accessibility
+                if (accessibilityValue >= 70) {
+                    activityAccessibility.style.color = '#4caf50'; // Green
+                } else if (accessibilityValue >= 40) {
+                    activityAccessibility.style.color = '#ff9800'; // Orange
+                } else {
+                    activityAccessibility.style.color = '#f44336'; // Red
+                }
+            }
+            
+            // Helper function to format activity type
+            function formatType(type) {
+                return type.charAt(0).toUpperCase() + type.slice(1);
+            }
+        });
+    </script>
+</body>
+</html>
